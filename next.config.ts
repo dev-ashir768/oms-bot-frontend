@@ -2,9 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    cpus: 1,
-    workerThreads: false,
+    // @ts-ignore
+    turbo: false,
+    // @ts-ignore
+    turbopack: false,
   },
+  swcMinify: true,
 };
 
 export default nextConfig;
