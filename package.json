@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun run next dev",
-    "build": "bun run next build",
-    "start": "bun run next start",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "NODE_ENV=production bun server.js",
     "lint": "eslint",
-    "build:widget": "webpack",
-    "build:server": "RAYON_NUM_THREADS=1 NEXT_CPU_COUNT=1 next build"
+    "build:widget": "webpack"
   },
   "dependencies": {
     "@babel/core": "^7.28.5",
