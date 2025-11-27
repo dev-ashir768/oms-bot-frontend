@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "NODE_ENV=production bun server.js",
+    "dev": "bun run next dev",
+    "build": "bun run next build",
+    "start": "bun run next start",
     "lint": "eslint",
     "build:widget": "webpack",
     "build:server": "RAYON_NUM_THREADS=1 NEXT_CPU_COUNT=1 next build"
