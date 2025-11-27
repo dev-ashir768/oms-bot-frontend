@@ -5,7 +5,7 @@ module.exports = {
   mode: "production",
   entry: "./widget/index.tsx",
   output: {
-    path: path.resolve(__dirname, "widget/build"),
+    path: path.resolve(__dirname, "public/widget/build"),
     filename: "widget.bundle.js",
     clean: true,
   },
