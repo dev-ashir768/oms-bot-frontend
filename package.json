@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "NODE_ENV=production bun server.js",
     "lint": "eslint",
-    "build:widget": "webpack"
+    "build:widget": "webpack",
+    "build:server": "RAYON_NUM_THREADS=1 next build"
   },
   "dependencies": {
     "@babel/core": "^7.28.5",
