@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Loader2, Bot } from "lucide-react";
+import { useChatMutation } from "@/hooks/useChat";
 
 export type WidgetPosition =
   | "bottom-right"
@@ -36,8 +37,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     { id: "1", role: "bot", content: GREETING_MESSAGE, timestamp: new Date() },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
+  const { mutateAsync: sendMessage, isPending } = useChatMutation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,20 +58,30 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
     setMessages((prev) => [...prev, userMsg]);
     setInputValue("");
-    setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await sendMessage(inputValue);
+
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "bot",
-          content: "This is a mock response from ORIO UI.",
+          content: response,
           timestamp: new Date(),
         },
       ]);
-      setIsLoading(false);
-    }, 1500);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          content: "Sorry, I encountered an error. Please try again later.",
+          timestamp: new Date(),
+        },
+      ]);
+    }
   };
 
   // Logic helpers
@@ -196,7 +207,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
               </div>
             </div>
           ))}
-          {isLoading && (
+          {isPending && (
             <div className="widget:flex widget:justify-start widget:w-full">
               <div className="widget:bg-white widget:border widget:border-gray-100 widget:p-3 widget:rounded-2xl! widget:rounded-bl-none! widget:shadow-sm widget:flex widget:items-center widget:gap-1">
                 <div
@@ -229,18 +240,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask a question..."
               className="widget:flex-1 widget:bg-transparent widget:border-none widget:outline-none widget:text-sm widget:text-gray-700 widget:placeholder-gray-400"
-              disabled={isLoading}
+              disabled={isPending}
             />
             <button
               type="submit"
-              disabled={!inputValue.trim() || isLoading}
+              disabled={!inputValue.trim() || isPending}
               className={`widget:p-2 widget:rounded-full! widget:transition-all widget:duration-200 ${
                 inputValue.trim()
                   ? `${BRAND_COLOR} widget:text-white hover:widget:opacity-90 widget:shadow-md`
                   : "widget:bg-gray-300 widget:text-gray-500 widget:cursor-not-allowed"
               }`}
             >
-              {isLoading ? (
+              {isPending ? (
                 <Loader2 size={16} className="widget:animate-spin" />
               ) : (
                 <Send size={16} />
