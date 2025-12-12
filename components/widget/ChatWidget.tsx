@@ -72,6 +72,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         },
       ]);
     } catch (error) {
+      console.error("Error sending message:", error);
       setMessages((prev) => [
         ...prev,
         {

@@ -1,4 +1,5 @@
 import { createRoot, Root } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ChatWidget, { WidgetPosition } from "@/components/widget/ChatWidget";
 import "@/app/globals.css";
 
@@ -103,8 +104,15 @@ class BotWidgetManager {
 
       this.root = createRoot(container);
 
+      // Create a client
+      const queryClient = new QueryClient();
+
       // Injecting Config Props if ChatWidget supports them (Future Proofing)
-      this.root.render(<ChatWidget position={this.config.position} />);
+      this.root.render(
+        <QueryClientProvider client={queryClient}>
+          <ChatWidget position={this.config.position} />
+        </QueryClientProvider>
+      );
 
       console.log("🚀 BOT Chat Widget Initialized Successfully");
     } catch (error) {
