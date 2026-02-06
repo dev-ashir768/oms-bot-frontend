@@ -11,6 +11,7 @@ export const apiClient = axios.create({
 
 export interface ChatRequest {
   question: string;
+  history?: { role: "user" | "model"; content: string }[];
 }
 
 export interface ChatResponse {
@@ -23,14 +24,20 @@ export interface ChatResponse {
   };
 }
 
-export const sendChatMessage = async (question: string): Promise<string> => {
+export const sendChatMessage = async (
+  question: string,
+  history: { role: "user" | "model"; content: string }[] = [],
+): Promise<string> => {
   try {
-    const response = await apiClient.post<ChatResponse>("/chat", { question });
+    const response = await apiClient.post<ChatResponse>("/chat", {
+      question,
+      history,
+    });
     return response.data.data.answer;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
-        error.response.data.message || "Failed to fetch response"
+        error.response.data.message || "Failed to fetch response",
       );
     }
     throw error;
