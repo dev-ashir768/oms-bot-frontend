@@ -27,7 +27,7 @@ interface Message {
 
 // Config Constants
 const BRAND_COLOR = "widget:bg-[#0074fc]";
-const BRAND_NAME = "ORIO OMS BOT";
+const BRAND_NAME = "Orio Botify";
 const GREETING_MESSAGE =
   "Hello! I am the ORIO OMS Assistant. How can I help you manage your orders today?";
 
