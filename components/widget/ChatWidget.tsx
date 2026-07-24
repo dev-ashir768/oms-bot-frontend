@@ -42,6 +42,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
   const { mutateAsync: sendMessage, isPending } = useChatMutation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
@@ -61,15 +62,31 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   };
 
   useEffect(() => {
+    // Jump straight to the latest message whenever the widget opens.
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     // Smart Auto-Scroll:
-    // Scroll if user is already at bottom (button hidden) OR if the last message is from user.
+    // - After the user sends a message, snap all the way to the bottom so
+    //   they see it plus the "Thinking..." indicator.
+    // - When the bot's reply arrives, scroll to the START of that reply
+    //   (not the bottom) so long answers are read from the top.
     const lastMessage = messages[messages.length - 1];
     const isUserMessage = lastMessage?.role === "user";
 
-    if (!showScrollButton || isUserMessage) {
+    if (isUserMessage) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (!showScrollButton) {
+      lastMessageRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
-  }, [messages, isOpen]); // removed showScrollButton dependency to avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]); // removed showScrollButton dependency to avoid loop
 
   // ... (handleSendMessage is same) ...
 
@@ -178,7 +195,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                   isTop ? "-widget:translate-y-4" : "widget:translate-y-4"
                 }`
           }
-          widget:w-[350px] sm:widget:w-[380px] widget:h-[500px] widget:max-h-[80vh]
+          widget:w-87.5 sm:widget:w-[380px] widget:h-125 widget:max-h-[80vh]
           widget:bg-white widget:rounded-2xl! widget:shadow-2xl widget:border widget:border-gray-200 widget:overflow-hidden widget:flex widget:flex-col
           ${isTop ? "widget:mt-4" : "widget:mb-4"} 
           ${isTop ? "widget:order-2" : "widget:order-1"}
@@ -211,14 +228,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         </div>
 
         {/* Messages */}
+        <div className="widget:flex-1 widget:relative widget:overflow-hidden widget:bg-gray-50">
         <div
           ref={messagesContainerRef}
           onScroll={handleScroll}
-          className="widget:flex-1 widget:overflow-y-auto widget:p-4 widget:bg-gray-50 widget:space-y-4 custom-scrollbar widget:relative"
+          className="widget:h-full widget:overflow-y-auto widget:p-4 widget:space-y-4 custom-scrollbar"
         >
-          {messages.map((msg) => (
+          {messages.map((msg, index) => (
             <div
               key={msg.id}
+              ref={index === messages.length - 1 ? lastMessageRef : undefined}
               className={`widget:flex widget:w-full ${
                 msg.role === "user"
                   ? "widget:justify-end"
@@ -243,7 +262,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                       components={{
                         // Paragraphs
                         p: ({ children }) => (
-                          <p className="widget:mb-2 widget:last:mb-0">
+                          <p className=" widget:last:mb-0">
                             {children}
                           </p>
                         ),
@@ -292,6 +311,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                           </h3>
                         ),
                         // Code blocks
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         code: (props: any) => {
                           const { inline, children } = props;
                           return inline ? (
@@ -349,29 +369,35 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           ))}
           {isPending && (
             <div className="widget:flex widget:justify-start widget:w-full">
-              <div className="widget:bg-white widget:border widget:border-gray-100 widget:p-3 widget:rounded-2xl! widget:rounded-bl-none! widget:shadow-sm widget:flex widget:items-center widget:gap-1">
-                <div
-                  className="widget:w-2 widget:h-2 widget:bg-gray-400 widget:rounded-full! widget:animate-bounce"
-                  style={{ animationDelay: "0ms" }}
-                ></div>
-                <div
-                  className="widget:w-2 widget:h-2 widget:bg-gray-400 widget:rounded-full! widget:animate-bounce"
-                  style={{ animationDelay: "150ms" }}
-                ></div>
-                <div
-                  className="widget:w-2 widget:h-2 widget:bg-gray-400 widget:rounded-full! widget:animate-bounce"
-                  style={{ animationDelay: "300ms" }}
-                ></div>
+              <div className="widget:bg-white widget:border widget:border-gray-100 widget:px-3 widget:py-2.5 widget:rounded-2xl! widget:rounded-bl-none! widget:shadow-sm widget:flex widget:items-center widget:gap-2">
+                <span className="widget:text-xs widget:text-gray-500 widget:animate-pulse">
+                  Thinking...
+                </span>
+                <div className="widget:flex widget:items-center widget:gap-1">
+                  <div
+                    className="widget:w-1.5 widget:h-1.5 widget:bg-gray-400 widget:rounded-full! widget:animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className="widget:w-1.5 widget:h-1.5 widget:bg-gray-400 widget:rounded-full! widget:animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className="widget:w-1.5 widget:h-1.5 widget:bg-gray-400 widget:rounded-full! widget:animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
+                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
+        </div>
 
           {/* Floating Scroll Button */}
           {showScrollButton && (
             <button
               onClick={scrollToBottom}
-              className={`widget:absolute widget:bottom-5 widget:right-1/2 widget:translate-x-1/2 widget:bg-white widget:shadow-lg widget:border widget:border-gray-200 widget:text-gray-600 widget:p-2 widget:rounded-full widget:animate-bounce widget:hover:bg-gray-50 widget:transition-all widget:z-10`}
+              className="widget:absolute widget:bottom-3 widget:left-1/2 widget:-translate-x-1/2 widget:bg-white widget:shadow-lg widget:border widget:border-gray-200 widget:text-gray-600 widget:p-2 widget:rounded-full! hover:widget:bg-gray-50 widget:transition-all widget:z-10"
               aria-label="Scroll to bottom"
             >
               <ArrowDown size={18} />
@@ -402,7 +428,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 }
               }}
               placeholder="Ask a question..."
-              className="widget:flex-1 widget:bg-transparent widget:border-none widget:outline-none widget:text-sm widget:text-gray-700 widget:placeholder-gray-400 widget:resize-none widget:max-h-[120px] widget:py-2 custom-scrollbar"
+              className="widget:flex-1 widget:bg-transparent widget:border-none widget:outline-none widget:text-sm  widget:placeholder-gray-400 widget:resize-none widget:max-h-30 widget:py-2 custom-scrollbar"
               rows={1}
               disabled={isPending}
             />
